@@ -1,5 +1,5 @@
 --////////////////////////////////////////////////////////////--
---  LOADSCRIPT UNIFICADO V30.0 (REDUZIDO: BODY & 360)         --
+--  LOADSCRIPT UNIFICADO V30.0 (XENO OPTIMIZED)               --
 --////////////////////////////////////////////////////////////--
 
 if not game:IsLoaded() then game.Loaded:Wait() end
@@ -37,16 +37,22 @@ task.spawn(function()
         b_flickActive = true
         task.spawn(doCamera360Flick)
         -- Aumenta velocidade das animações durante o giro
-        if humanoid then for _, t in ipairs(humanoid:GetPlayingAnimationTracks()) do t:AdjustSpeed(3) end end
+        if humanoid then 
+            for _, t in ipairs(humanoid:GetPlayingAnimationTracks()) do 
+                t:AdjustSpeed(3) 
+            end 
+        end
         task.delay(0.12, function() b_flickActive = false end)
     end
 
-    -- Hook para detectar quando o jogador ataca (Remote de Attack)
-    local R = ReplicatedStorage:WaitForChild("LightsaberRemotes")
-    local Attack = R:WaitForChild("Attack")
+    -- Hook para detectar quando o jogador ataca (Xeno Compatibility)
+    local R = ReplicatedStorage:WaitForChild("LightsaberRemotes", 10)
+    local Attack = R:WaitForChild("Attack", 10)
     
-    local oldNameCall; oldNameCall = hookmetamethod(game, "__namecall", function(self, ...)
-        if self == Attack and getnamecallmethod() == "FireServer" then 
+    local oldNameCall;
+    oldNameCall = hookmetamethod(game, "__namecall", function(self, ...)
+        local method = getnamecallmethod()
+        if self == Attack and method == "FireServer" then 
             task.spawn(executeBodyFlick) 
         end
         return oldNameCall(self, ...)
@@ -74,7 +80,7 @@ task.spawn(function()
         else
             humanoid.AutoRotate = true
             local _, y, _ = hrp.CFrame:ToEulerAnglesYXZ()
-            b_yaw = math.degrees(y)
+            b_yaw = math.deg(y) -- Corrigido de degrees para deg para rodar no Xeno
         end
     end)
 
@@ -83,26 +89,44 @@ task.spawn(function()
         humanoid  = character:WaitForChild("Humanoid")
         hrp       = character:WaitForChild("HumanoidRootPart")
     end
-    LP.CharacterAdded:Connect(refreshCharacter); refreshCharacter()
+    LP.CharacterAdded:Connect(refreshCharacter)
+    refreshCharacter()
 
     -- [INTERFACE GUI]
-    local gui = Instance.new("ScreenGui", LP.PlayerGui); gui.Name = "SaberFlicker"; gui.ResetOnSpawn = false
+    local gui = Instance.new("ScreenGui", LP:WaitForChild("PlayerGui"))
+    gui.Name = "SaberFlicker"
+    gui.ResetOnSpawn = false
     
     local toggleBtn = Instance.new("TextButton", gui)
     toggleBtn.Size, toggleBtn.Position = UDim2.new(0, 70, 0, 30), UDim2.fromOffset(50, 120)
-    toggleBtn.Text = "MENU"; toggleBtn.BackgroundColor3 = Color3.fromRGB(80, 80, 80); toggleBtn.TextColor3 = Color3.new(1,1,1); toggleBtn.Draggable, toggleBtn.Active = true, true; Instance.new("UICorner", toggleBtn)
+    toggleBtn.Text = "MENU"
+    toggleBtn.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+    toggleBtn.TextColor3 = Color3.new(1,1,1)
+    toggleBtn.Draggable = true
+    toggleBtn.Active = true
+    Instance.new("UICorner", toggleBtn)
 
     local win = Instance.new("Frame", gui)
     win.Size, win.Position = UDim2.new(0, 200, 0, 110), UDim2.fromOffset(50, 160)
-    win.BackgroundColor3 = Color3.fromRGB(35, 35, 40); win.Active, win.Draggable = true, true; win.Visible = true; Instance.new("UICorner", win)
+    win.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
+    win.Active = true
+    win.Draggable = true
+    win.Visible = true
+    Instance.new("UICorner", win)
 
     local flickBtn = Instance.new("TextButton", win) 
     flickBtn.Size, flickBtn.Position = UDim2.new(1, -20, 0, 40), UDim2.new(0, 10, 0, 10)
-    flickBtn.Text = "360 CAM: ON (F8)"; flickBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 0); flickBtn.TextColor3 = Color3.new(1,1,1); Instance.new("UICorner", flickBtn)
+    flickBtn.Text = "360 CAM: ON (F8)"
+    flickBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
+    flickBtn.TextColor3 = Color3.new(1,1,1)
+    Instance.new("UICorner", flickBtn)
 
     local bodyBtn = Instance.new("TextButton", win)
     bodyBtn.Size, bodyBtn.Position = UDim2.new(1, -20, 0, 40), UDim2.new(0, 10, 0, 60)
-    bodyBtn.Text = "BODY GIRO: ON (J)"; bodyBtn.BackgroundColor3 = Color3.fromRGB(0, 180, 0); bodyBtn.TextColor3 = Color3.new(1,1,1); Instance.new("UICorner", bodyBtn)
+    bodyBtn.Text = "BODY GIRO: ON (J)"
+    bodyBtn.BackgroundColor3 = Color3.fromRGB(0, 180, 0)
+    bodyBtn.TextColor3 = Color3.new(1,1,1)
+    Instance.new("UICorner", bodyBtn)
 
     -- [FUNÇÕES DOS BOTÕES]
     toggleBtn.MouseButton1Click:Connect(function() win.Visible = not win.Visible end)
@@ -122,7 +146,7 @@ task.spawn(function()
     flickBtn.MouseButton1Click:Connect(toggleFlick)
     bodyBtn.MouseButton1Click:Connect(toggleBody)
 
-    -- Atalhos de Teclado (F8 e J)
+    -- Atalhos de Teclado
     UserInputService.InputBegan:Connect(function(input, p)
         if p then return end
         if input.KeyCode == Enum.KeyCode.F8 then toggleFlick()
